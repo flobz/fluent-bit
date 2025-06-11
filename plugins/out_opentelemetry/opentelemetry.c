@@ -42,7 +42,8 @@
 #include <cprofiles/cprof_decode_msgpack.h>
 #include <cprofiles/cprof_encode_opentelemetry.h>
 
-extern cfl_sds_t cmt_encode_opentelemetry_create(struct cmt *cmt);
+extern cfl_sds_t cmt_encode_opentelemetry_create_with_cutoff_opts(struct cmt *cmt,
+                                                                  struct cmt_opentelemetry_context_opts *opts);
 extern void cmt_encode_opentelemetry_destroy(cfl_sds_t text);
 
 #include "opentelemetry.h"
@@ -558,11 +559,16 @@ static int process_metrics(struct flb_event_chunk *event_chunk,
     size_t off = 0;
     struct cmt *cmt;
     struct opentelemetry_context *ctx = out_context;
+    extern struct cmt_opentelemetry_context_opts opts;
 
     /* Initialize vars */
     ctx = out_context;
     ok = CMT_DECODE_MSGPACK_SUCCESS;
     result = FLB_OK;
+// opts = flb_calloc(1, sizeof(struct cmt_opentelemetry_context_opts));
+
+    opts.use_cutoff =  ctx->cutoff_threshold > 0;
+    opts.cutoff_threshold = ctx->cutoff_threshold;
 
     /* Buffer to concatenate multiple metrics contexts */
     buf = flb_sds_create_size(event_chunk->size);
@@ -583,7 +589,8 @@ static int process_metrics(struct flb_event_chunk *event_chunk,
         append_labels(ctx, cmt);
 
         /* Create a OpenTelemetry payload */
-        encoded_chunk = cmt_encode_opentelemetry_create(cmt);
+        encoded_chunk = cmt_encode_opentelemetry_create_with_cutoff_opts(cmt,
+                                                                         &opts);
         if (encoded_chunk == NULL) {
             flb_plg_error(ctx->ins,
                           "Error encoding context as opentelemetry");

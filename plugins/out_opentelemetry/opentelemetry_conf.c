@@ -331,6 +331,14 @@ struct opentelemetry_context *flb_opentelemetry_context_create(struct flb_output
         return NULL;
     }
 
+    tmp = flb_output_get_property("cut_off_sec", ins);
+    if (tmp) {
+        ctx->cutoff_threshold = strtol(tmp, NULL, 0) * 1000000000L;
+    }
+    else {
+        ctx->cutoff_threshold = 0;
+    }
+
     ctx->u = upstream;
     ctx->host = ins->host.name;
     ctx->port = ins->host.port;

@@ -162,6 +162,9 @@ struct opentelemetry_context {
     /* compression: zstd */
     int compress_zstd;
 
+    /* cutoff threshold */
+    long cutoff_threshold;
+
     /* FLB/OTLP Record accessor patterns */
     struct flb_record_accessor *ra_meta_schema;
     struct flb_record_accessor *ra_meta_resource_id;
